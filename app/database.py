@@ -1,33 +1,47 @@
-# app/config.py
-"""Application configuration settings."""
-import os
-import logging
-from pydantic_settings import BaseSettings
+# app/database.py
+"""Database connection and session management."""
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-logger = logging.getLogger(__name__)
+from app.config import settings, logger
+from app.models.base import Base
 
 
-class Settings(BaseSettings):
-    """Application settings."""
+# Global variables to store engine and session factory
+engine = None
+async_session = None
+
+
+async def init_db():
+    """Initialize database connection and create tables if they don't exist."""
+    global engine, async_session
     
-    # Database settings
-    db_url: str = os.getenv("DB_URL", "sqlite+aiosqlite:///data/phone_calls.db")
+    logger.info(f"Initializing database connection to {settings.db_url}")
+    engine = create_async_engine(settings.db_url, echo=settings.debug)
     
-    # Server settings
-    host: str = "0.0.0.0"
-    port: int = 8000
-    debug: bool = True
+    # Create tables
+    async with engine.begin() as conn:
+        logger.info("Creating database tables if they don't exist")
+        await conn.run_sync(Base.metadata.create_all)
     
-    # Application name
-    app_name: str = "Phone Call Logger"
+    # Create session factory
+    async_session = sessionmaker(
+        engine, expire_on_commit=False, class_=AsyncSession
+    )
+    
+    logger.info("Database initialization complete")
+    return engine, async_session
 
 
-# Create settings instance
-settings = Settings()
+async def close_db():
+    """Close database connections."""
+    if engine:
+        logger.info("Closing database connections")
+        await engine.dispose()
+
+
+async def get_session() -> AsyncSession:
+    """Dependency for getting a database session."""
+    async with async_session() as session:
+        yield session
 
