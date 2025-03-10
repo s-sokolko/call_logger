@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  call-logger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: call-logger
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DB_URL=sqlite+aiosqlite:///data/phone_calls.db
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+
