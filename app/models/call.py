@@ -1,28 +1,31 @@
-# app/models/log.py
-"""Log entry model for storing raw request logs."""
-from datetime import datetime
-from sqlalchemy import Column, Integer, DateTime, Text
-
-from app.models.base import Base
-
-
-class LogEntry(Base):
-    """Model for storing raw event logs."""
+class Call(Base):
+    """Model for storing call information."""
     
-    __tablename__ = 'logs'
+    __tablename__ = 'calls'
     
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    received = Column(DateTime, default=datetime.now)
-    url = Column(Text)
+    call_id = Column(String, primary_key=True)
+    from_number = Column(String)
+    to_number = Column(String)
+    phone_mac = Column(String)
+    started = Column(DateTime, default=datetime.now)
+    finished = Column(DateTime, nullable=True)
+    direction = Column(String)
+    status = Column(String, default='in_progress')
+    total_duration = Column(Integer, nullable=True)
     
     def __repr__(self):
-        return f"<LogEntry(id={self.id}, received={self.received})>"
+        return f"<Call(call_id={self.call_id}, direction={self.direction}, status={self.status})>"
     
     def to_dict(self):
         """Convert the model instance to a dictionary."""
         return {
-            "id": self.id,
-            "received": self.received.isoformat() if self.received else None,
-            "url": self.url
+            "call_id": self.call_id,
+            "from_number": self.from_number,
+            "to_number": self.to_number,
+            "phone_mac": self.phone_mac,
+            "started": self.started.isoformat() if self.started else None,
+            "finished": self.finished.isoformat() if self.finished else None,
+            "direction": self.direction,
+            "status": self.status,
+            "total_duration": self.total_duration
         }
-
