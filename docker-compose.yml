@@ -17,3 +17,14 @@ services:
       - PORT=8000
       - DEBUG=false
 
+  syslog: # needed for extra logging from Yealink and Cisco phones
+    image: balabit/syslog-ng:latest
+    container_name: syslog-server
+    restart: unless-stopped
+    ports:
+      - "5514:514/udp"  # Custom UDP port for syslog
+      - "5514:514/tcp"  # Custom TCP port for syslog
+    volumes:
+      - ./logs:/var/log  # Where logs will be stored
+    command: -edv  # Run in verbose mode
+

@@ -1,7 +1,8 @@
 # app/models/call.py
 """Call model for storing call statistics."""
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, JSON
+from sqlalchemy.ext.mutable import MutableList
 
 from app.models.base import Base
 
@@ -20,6 +21,7 @@ class Call(Base):
     direction = Column(String)
     status = Column(String, default='in_progress')
     total_duration = Column(Integer, nullable=True)
+    transfers = Column(MutableList.as_mutable(JSON), default=list)
     
     def __repr__(self):
         return f"<Call(call_id={self.call_id}, direction={self.direction}, status={self.status})>"
@@ -35,5 +37,6 @@ class Call(Base):
             "finished": self.finished.isoformat() if self.finished else None,
             "direction": self.direction,
             "status": self.status,
-            "total_duration": self.total_duration
+            "total_duration": self.total_duration,
+            "transfers": self.transfers
         }

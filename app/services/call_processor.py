@@ -45,8 +45,7 @@ async def process_event(params: Dict[str, Any], session: AsyncSession):
         call_id = f"{phone_mac}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
     # Fetch existing call if it exists
-    result = await session.execute(select(Call).where(Call.call_id == call_id))
-    existing_call = result.scalars().first()
+    existing_call = (await session.query(Call).filter(Call.call_id == call_id).first())
     
     # Process based on event type
     await _handle_event(
@@ -134,7 +133,8 @@ async def _handle_event(
             existing_call=existing_call,
             call_id=call_id,
             phone_type=phone_type,
-            params=params
+            params=params,
+            session=session
         )
 
 
@@ -240,7 +240,8 @@ async def _handle_call_transfer(
     existing_call: Call,
     call_id: str,
     phone_type: str,
-    params: Dict[str, Any]
+    params: Dict[str, Any],
+    session: AsyncSession
 ):
     """Handle call transfer events."""
     if existing_call:
@@ -250,4 +251,14 @@ async def _handle_call_transfer(
             transfer_to = get_param(params, "transfer", "unknown")
         
         logger.info(f"Call transferred: {call_id} to {transfer_to}")
+        
+        # Initialize transfers list if it doesn't exist
+        if existing_call.transfers is None:
+            existing_call.transfers = []
+        
+        # Add the transfer destination to the transfers list
+        existing_call.transfers.append(transfer_to)
+        
+        # Commit the changes to the database
+        await session.commit()
 
