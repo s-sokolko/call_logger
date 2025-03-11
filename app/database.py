@@ -2,6 +2,7 @@
 """Database connection and session management."""
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+import os
 
 from app.config import settings, logger
 from app.models.base import Base
@@ -16,8 +17,23 @@ async def init_db():
     """Initialize database connection and create tables if they don't exist."""
     global engine, async_session
     
+    # Ensure the directory for SQLite database exists
+    if settings.db_url.startswith('sqlite'):
+        db_path = settings.db_url.replace('sqlite+aiosqlite:///', '')
+        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+    
     logger.info(f"Initializing database connection to {settings.db_url}")
-    engine = create_async_engine(settings.db_url, echo=settings.debug)
+    
+    # For SQLite, we need to use the aiosqlite driver and add connect_args
+    connect_args = {}
+    if settings.db_url.startswith('sqlite'):
+        connect_args = {"check_same_thread": False}
+    
+    engine = create_async_engine(
+        settings.db_url,
+        echo=settings.debug,
+        connect_args=connect_args
+    )
     
     # Create tables
     async with engine.begin() as conn:

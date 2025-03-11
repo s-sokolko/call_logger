@@ -20,10 +20,9 @@ class Settings(BaseSettings):
     db_url: str = os.getenv("DB_URL", "sqlite+aiosqlite:///data/phone_calls.db")
     
     # Server settings
-    host: str = "0.0.0.0"
-    port: int = 8000
-    debug: bool = True
-    
+    host: str = os.getenv("HOST", "0.0.0.0")
+    port: int = int(os.getenv("PORT", 8000))
+    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
     # Application name
     app_name: str = "Phone Call Logger"
 
