@@ -1,3 +1,11 @@
+# app/models/call.py
+"""Call model for storing call statistics."""
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime
+
+from app.models.base import Base
+
+
 class Call(Base):
     """Model for storing call information."""
     
