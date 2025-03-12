@@ -15,7 +15,7 @@ class Call(Base):
     call_id = Column(String, primary_key=True)
     from_number = Column(String)
     to_number = Column(String)
-    phone_mac = Column(String)
+    phone_mac = Column(String, index=True)
     started = Column(DateTime, default=datetime.now)
     finished = Column(DateTime, nullable=True)
     direction = Column(String)
