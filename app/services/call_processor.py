@@ -45,7 +45,10 @@ async def process_event(params: Dict[str, Any], session: AsyncSession):
         call_id = f"{phone_mac}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
     
     # Fetch existing call if it exists
-    existing_call = (await session.query(Call).filter(Call.call_id == call_id).first())
+    result = await session.execute(
+        select(Call).filter(Call.call_id == call_id)
+    )
+    existing_call = result.scalars().first()
     
     # Process based on event type
     await _handle_event(
